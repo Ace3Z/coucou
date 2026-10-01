@@ -78,6 +78,29 @@ The pill lifecycle:
 | `SessionEnd` | Pill removed |
 | `SubagentStart` / `SubagentStop` | Step added to ticker |
 
+## Real-world examples
+
+### Gemini CLI (Windows)
+
+Coucou supports Gemini CLI out of the box via **Settings → Gemini CLI → Install hooks**.
+The installer writes to `~/.gemini/settings.json` and uses `--agent gemini` so
+Gemini sessions get their own pill. Event names like `BeforeTool` / `AfterTool` and
+`BeforeAgent` / `AfterAgent` are translated to `PreToolUse` / `PostToolUse` and
+`SubagentStart` / `SubagentStop` by the relay automatically.
+
+### Antigravity — `agy` (Windows)
+
+Coucou supports Antigravity out of the box via **Settings → Antigravity → Install hooks**.
+The installer writes to `~/.gemini/config/hooks.json` (timeouts in seconds) and uses
+`--agent antigravity`. The relay maps `PreInvocation → UserPromptSubmit`,
+`PostInvocation → PostToolUse`, and translates `toolCall.name` / `conversationId` to the
+island's `tool_name` / `session_id`.
+
+### Any other tool
+
+Follow the generic pattern: call `coucou-hook.exe --agent <your-name> <EventName>` (Windows)
+or `nb-hook --agent <your-name>` (macOS) and let the relay forward the event.
+
 ## Quick test (macOS)
 
 With Coucou running:
