@@ -314,9 +314,8 @@ pub const GEMINI_HOOK_EVENTS: &[(&str, &str, u64)] = &[
     ("SessionEnd", "SessionEnd", 10000),
     ("BeforeTool", "PreToolUse", 5000),
     ("AfterTool", "PostToolUse", 5000),
-    ("AfterModel", "PostToolUse", 5000),
-    ("BeforeAgent", "SubagentStart", 5000),
-    ("AfterAgent", "SubagentStop", 5000),
+    ("BeforeAgent", "UserPromptSubmit", 5000),
+    ("AfterAgent", "Stop", 5000),
 ];
 
 /// Antigravity CLI events to install.  Timeouts are in **seconds** (agy format).

@@ -121,8 +121,8 @@ fn normalize_event(name: &str) -> String {
         "BeforeTool" | "BeforeToolSelection" => "PreToolUse".to_string(),
         "AfterTool" => "PostToolUse".to_string(),
         "AfterModel" => "PostToolUse".to_string(),
-        "BeforeAgent" => "SubagentStart".to_string(),
-        "AfterAgent" => "SubagentStop".to_string(),
+        "BeforeAgent" => "UserPromptSubmit".to_string(),
+        "AfterAgent" => "Stop".to_string(),
         "SessionStart" | "startup" => "SessionStart".to_string(),
         "SessionEnd" | "exit" => "SessionEnd".to_string(),
         // Antigravity CLI (`agy`): Pre/PostToolUse and Stop already match;

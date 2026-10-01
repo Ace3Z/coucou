@@ -84,9 +84,9 @@ The pill lifecycle:
 
 Coucou supports Gemini CLI out of the box via **Settings → Gemini CLI → Install hooks**.
 The installer writes to `~/.gemini/settings.json` and uses `--agent gemini` so
-Gemini sessions get their own pill. Event names like `BeforeTool` / `AfterTool` and
-`BeforeAgent` / `AfterAgent` are translated to `PreToolUse` / `PostToolUse` and
-`SubagentStart` / `SubagentStop` by the relay automatically.
+Gemini sessions get their own pill. Event names like `BeforeTool` / `AfterTool`,
+`BeforeAgent` and `AfterAgent` are translated to `PreToolUse` / `PostToolUse`,
+`UserPromptSubmit` and `Stop` by the relay automatically.
 
 ### Antigravity — `agy` (Windows)
 

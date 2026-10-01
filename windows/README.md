@@ -82,10 +82,10 @@ Go successor of Gemini CLI).
   only that key).
 
 Once installed, a `gemini` or `agy` session gets its own pill in the island, just
-like a Claude Code session. The same `coucou-hook.exe` relay is used; it
-translates Gemini's `BeforeTool` / `AfterTool` / `BeforeAgent` / `AfterAgent`
-events and Antigravity's `toolCall` / `conversationId` fields into the shapes the
-island already understands.
+like a Claude Code session. The same `coucou-hook.exe` relay is used; it translates Gemini's `BeforeTool` /
+`AfterTool` / `BeforeAgent` / `AfterAgent` events to `PreToolUse` / `PostToolUse` /
+`UserPromptSubmit` / `Stop`, and maps Antigravity's `toolCall` / `conversationId`
+fields to the shapes the island already understands.
 
 ## Chat and keys
 
