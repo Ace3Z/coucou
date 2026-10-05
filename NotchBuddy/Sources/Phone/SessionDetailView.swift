@@ -18,8 +18,10 @@ struct SessionDetailView: View {
                     header(session)
                     if session.needsApproval {
                         ApprovalCard(link: link, session: session)
+                            .transition(.phaseCard)
                     } else if let payload = session.questionPayload, !session.questionFingerprint.isEmpty {
                         QuestionCard(link: link, session: session, payload: payload)
+                            .transition(.phaseCard)
                     } else if !session.question.isEmpty {
                         waiting(title: "Question", text: session.question, monospaced: false, color: .cyan,
                                 footnote: "Answer on your Mac: this question can't be answered from the iPhone.")
@@ -39,6 +41,9 @@ struct SessionDetailView: View {
                     if !pastTurns.isEmpty { earlierTurns }
                 }
                 .padding(16)
+                // A new phase (working, question, waiting, done) slides in instead of jumping.
+                .animation(.spring(duration: 0.5, bounce: 0.2),
+                           value: "\(session.state.rawValue)|\(session.statusText)|\(session.approvalFingerprint)|\(session.questionFingerprint)")
             } else if let turn {
                 VStack(alignment: .leading, spacing: 16) {
                     Text("This session ended on your Mac. Its last turn:")
@@ -136,6 +141,7 @@ struct SessionDetailView: View {
                 Text(session.statusText)
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(session.statusColor)
+                    .contentTransition(.interpolate)
                 HStack(spacing: 4) {
                     if !session.macName.isEmpty {
                         Text(session.macName)
@@ -214,5 +220,13 @@ struct SessionDetailView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
         .background(Color(white: 0.11), in: RoundedRectangle(cornerRadius: 22))
+    }
+}
+
+extension AnyTransition {
+    /// A card that comes with a phase (an OK to give, a question): drops in from above.
+    static var phaseCard: AnyTransition {
+        .asymmetric(insertion: .move(edge: .top).combined(with: .opacity),
+                    removal: .scale(scale: 0.95).combined(with: .opacity))
     }
 }

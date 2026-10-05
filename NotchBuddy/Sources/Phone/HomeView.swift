@@ -30,6 +30,9 @@ struct HomeView: View {
                         }
                         .padding(.vertical, 6)
                         .background(Color(white: 0.11), in: RoundedRectangle(cornerRadius: 22))
+                        // Sessions move to their new place and change status smoothly.
+                        .animation(.spring(duration: 0.5, bounce: 0.2),
+                                   value: link.sessions.map { "\($0.id)|\($0.statusText)" })
                     }
                     ServicesList(services: link.services)
                 }
@@ -108,11 +111,13 @@ struct NotchHeader: View {
                 Text(headline)
                     .font(.headline)
                     .foregroundStyle(.white)
+                    .contentTransition(.interpolate)
                 if let detail {
                     Text(detail)
                         .font(.subheadline)
                         .foregroundStyle(.white.opacity(0.6))
                         .lineLimit(1)
+                        .contentTransition(.interpolate)
                 }
             }
             Spacer(minLength: 0)
@@ -125,6 +130,7 @@ struct NotchHeader: View {
                 .strokeBorder(sessions.contains(where: \.isWaitingForYou) ? Color.orange.opacity(0.8) : Color.white.opacity(0.12),
                               lineWidth: 1.5)
         )
+        .animation(.spring(duration: 0.5, bounce: 0.2), value: "\(headline)|\(detail ?? "")")
     }
 
     private var headline: String {
@@ -168,6 +174,7 @@ struct SessionRow: View {
                 Text(session.statusText)
                     .font(.subheadline.weight(session.isWaitingForYou ? .semibold : .regular))
                     .foregroundStyle(session.statusColor)
+                    .contentTransition(.interpolate)
                 Text(session.updatedAt, style: .relative)
                     .font(.caption2)
                     .foregroundStyle(.tertiary)

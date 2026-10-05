@@ -130,8 +130,12 @@ struct SoloView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            WidgetMochi(state: session?.botState ?? .sleeping)
-                .frame(width: 56, height: 56)
+            ZStack {
+                WidgetMochi(state: session?.botState ?? .sleeping)
+                    .id(session?.state ?? "sleeping")
+                    .transition(.mochiSwap)
+            }
+            .frame(width: 56, height: 56)
             Spacer(minLength: 0)
             if let session {
                 Text(session.title)
@@ -142,7 +146,9 @@ struct SoloView: View {
                     .lineLimit(2)
                     .opacity(0.85)
                 HStack(spacing: 4) {
-                    Text(session.statusText).foregroundStyle(session.toneColor)
+                    Text(session.statusText)
+                        .foregroundStyle(session.toneColor)
+                        .contentTransition(.interpolate)
                     Text("·")
                     Text(session.updatedAt, style: .relative)
                 }
@@ -228,9 +234,13 @@ struct TeamTile: View {
     var body: some View {
         VStack(spacing: 0) {
             // In his own color, like the little Mochi in the Mac's notch.
-            WidgetMochi(state: session.botState, bodyHex: session.color, pose: pose)
-                .padding(.horizontal, 4)
-                .padding(.top, 2)
+            ZStack {
+                WidgetMochi(state: session.botState, bodyHex: session.color, pose: pose)
+                    .id(session.state)
+                    .transition(.mochiSwap)
+            }
+            .padding(.horizontal, 4)
+            .padding(.top, 2)
             Text(session.agent)
                 .font(.system(size: 9, weight: .semibold))
                 .foregroundStyle(.white.opacity(0.85))
@@ -305,6 +315,7 @@ struct ListView: View {
                         .font(.caption.weight(session.isWaitingForYou ? .semibold : .regular))
                         .foregroundStyle(session.toneColor)
                         .lineLimit(1)
+                        .contentTransition(.interpolate)
                 }
             }
             Spacer(minLength: 0)
