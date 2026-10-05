@@ -308,6 +308,7 @@ targets:
       - path: Sources/Phone/MacStubs.swift
       - path: Sources/Phone/MochiActivityAttributes.swift
       - path: Sources/Phone/OpenLeadMochiIntent.swift
+      - path: Sources/Phone/DenyApprovalIntent.swift
     info:
       path: Resources/InfoWidgets.plist
       properties:
@@ -322,6 +323,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: fr.louisraille.Coucou.Widgets
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) WIDGET_EXTENSION"
         PRODUCT_NAME: CoucouWidgets
         INFOPLIST_FILE: Resources/InfoWidgets.plist
         IPHONEOS_DEPLOYMENT_TARGET: "18.0"

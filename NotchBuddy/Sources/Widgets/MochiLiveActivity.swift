@@ -40,18 +40,23 @@ struct MochiLiveActivity: Widget {
                     }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    HStack(spacing: 10) {
-                        if state.stepCount > 0 {
-                            StepsBar(index: state.stepIndex, count: state.stepCount, color: state.toneColor)
+                    if let fingerprint = state.approval, state.tone == "waiting" {
+                        ApprovalButtons(fingerprint: fingerprint, pillId: state.pillId)
+                            .padding(.horizontal, 4)
+                    } else {
+                        HStack(spacing: 10) {
+                            if state.stepCount > 0 {
+                                StepsBar(index: state.stepIndex, count: state.stepCount, color: state.toneColor)
+                            }
+                            if let since = state.sinceDate, state.isActive {
+                                Text(since, style: .timer)
+                                    .font(.caption.monospacedDigit())
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 52, alignment: .trailing)
+                            }
                         }
-                        if let since = state.sinceDate, state.isActive {
-                            Text(since, style: .timer)
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                                .frame(width: 52, alignment: .trailing)
-                        }
+                        .padding(.horizontal, 4)
                     }
-                    .padding(.horizontal, 4)
                 }
             } compactLeading: {
                 MochiStill(state: state.botState)
@@ -99,7 +104,10 @@ struct LockScreenActivityView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                if state.stepCount > 0 && !stale {
+                if let fingerprint = state.approval, state.tone == "waiting", !stale {
+                    ApprovalButtons(fingerprint: fingerprint, pillId: state.pillId)
+                        .padding(.top, 4)
+                } else if state.stepCount > 0 && !stale {
                     StepsBar(index: state.stepIndex, count: state.stepCount, color: state.toneColor)
                 }
             }
@@ -107,6 +115,32 @@ struct LockScreenActivityView: View {
         }
         .foregroundStyle(.white)
         .padding(16)
+    }
+}
+
+/// Deny answers right away; Allow opens Coucou on the command, where Face ID
+/// confirms before anything is sent.
+struct ApprovalButtons: View {
+    let fingerprint: String
+    let pillId: String
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Button(intent: DenyApprovalIntent(fingerprint: fingerprint, pillId: pillId)) {
+                Label("Deny", systemImage: "xmark")
+                    .font(.subheadline.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .tint(.red)
+            Button(intent: AllowApprovalIntent(fingerprint: fingerprint, pillId: pillId)) {
+                Label("Allow", systemImage: "faceid")
+                    .font(.subheadline.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.green)
+        }
     }
 }
 
