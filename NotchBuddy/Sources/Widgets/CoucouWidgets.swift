@@ -397,8 +397,8 @@ extension SharedSession {
 
 /// Mochi in a widget. In the tinted (and clear) Home Screen styles iOS keeps
 /// only each pixel's opacity, so a white Mochi with black eyes turns into a
-/// blank shape. There he is drawn by brightness instead: the body shows, the
-/// eyes become holes, and you can see his face again.
+/// blank shape; on the Lock Screen it keeps only brightness. There he is drawn
+/// as a white shape with his eyes cut out, which reads in both.
 struct WidgetMochi: View {
     @Environment(\.widgetRenderingMode) private var renderingMode
     var state: BotState = .idle
@@ -410,8 +410,14 @@ struct WidgetMochi: View {
         if renderingMode == .fullColor {
             MochiStill(state: state, bodyHex: bodyHex, showBadge: showBadge, pose: pose)
         } else {
-            MochiStill(state: state, bodyHex: "#FFFFFF", showBadge: showBadge, pose: pose)
-                .luminanceToAlpha()
+            // White where Mochi is bright, see-through where he is dark (his
+            // eyes). The Lock Screen shows brightness, so the mask is filled
+            // with white rather than left black.
+            Color.white
+                .mask {
+                    MochiStill(state: state, bodyHex: "#FFFFFF", showBadge: showBadge, pose: pose)
+                        .luminanceToAlpha()
+                }
                 .widgetAccentable()
         }
     }
