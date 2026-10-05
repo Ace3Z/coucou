@@ -55,14 +55,6 @@ struct ApprovalCard: View {
         .background(Color(white: 0.11), in: RoundedRectangle(cornerRadius: 22))
         .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(Color.orange.opacity(0.7), lineWidth: 1.5))
         .onChange(of: session.approvalFingerprint) { sent = nil; error = nil }
-        // "Allow" on the notification: Face ID comes up as the app opens.
-        .task(id: session.approvalFingerprint) {
-            guard !session.approvalFingerprint.isEmpty,
-                  link.autoAllowFingerprint == session.approvalFingerprint else { return }
-            link.autoAllowFingerprint = nil
-            try? await Task.sleep(for: .milliseconds(500))
-            await send(.allow)
-        }
     }
 
     private func send(_ decision: Decision) async {

@@ -96,8 +96,6 @@ final class PhoneLink {
     var notificationsAllowed: Bool?
     /// A session to open, from a notification, a shortcut or the Control Center.
     var openPillId: String?
-    /// "Allow" was tapped on this request's notification: the app asks for Face ID as it opens.
-    var autoAllowFingerprint: String?
 
     @ObservationIgnored private let container = CKContainer(identifier: PhoneLink.containerID)
     @ObservationIgnored private var database: CKDatabase { container.privateCloudDatabase }
@@ -456,6 +454,17 @@ final class PhoneLink {
             lastPong = "Decision failed: \(error.localizedDescription)"
             return false
         }
+    }
+
+    /// Allow from the Live Activity or a notification, without opening the app
+    /// (the iPhone was unlocked by its owner: iOS asks for it first).
+    func allowFromOutside(fingerprint: String, pillId: String, from place: String) async -> Bool {
+        noteICloudAlert(fingerprint)
+        let command = sessions.first { $0.approvalFingerprint == fingerprint }?.approvalCommand ?? ""
+        let summary = command.isEmpty ? "Allowed from \(place)" : String(command.prefix(200))
+        let sent = await decide(.allow, fingerprint: fingerprint, pillId: pillId, summary: summary)
+        if sent { UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [Self.approvalNotificationID(fingerprint)]) }
+        return sent
     }
 
     /// Hands the sessions to the widgets and asks them to redraw.

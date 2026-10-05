@@ -3,10 +3,11 @@ import Foundation
 
 /// Deny on the Live Activity: answers the command waiting for your OK without
 /// opening Coucou. Compiled into the app and the widgets extension; iOS runs
-/// it in the app. (Allow opens Coucou instead, for Face ID: AllowApprovalIntent.)
+/// it in the app.
 struct DenyApprovalIntent: LiveActivityIntent {
     static let title: LocalizedStringResource = "Deny the command"
     static var isDiscoverable: Bool { false }
+    static var authenticationPolicy: IntentAuthenticationPolicy { .requiresAuthentication }
 
     @Parameter(title: "Request") var fingerprint: String
     @Parameter(title: "Agent") var pillId: String
@@ -27,12 +28,13 @@ struct DenyApprovalIntent: LiveActivityIntent {
     }
 }
 
-/// Allow on the Live Activity: opens Coucou on the command and asks for
-/// Face ID right away. Nothing is sent without it.
+/// Allow on the Live Activity, right where you are: iOS asks to unlock the
+/// iPhone (Face ID) if it is locked, then the OK goes to the Mac without
+/// opening Coucou. The Mac applies it only to this exact command.
 struct AllowApprovalIntent: LiveActivityIntent {
-    static let title: LocalizedStringResource = "Review and allow the command"
+    static let title: LocalizedStringResource = "Allow the command"
     static var isDiscoverable: Bool { false }
-    static var openAppWhenRun: Bool { true }
+    static var authenticationPolicy: IntentAuthenticationPolicy { .requiresAuthentication }
 
     @Parameter(title: "Request") var fingerprint: String
     @Parameter(title: "Agent") var pillId: String
@@ -46,13 +48,8 @@ struct AllowApprovalIntent: LiveActivityIntent {
 
     func perform() async throws -> some IntentResult {
         #if !WIDGET_EXTENSION
-        let fingerprint = fingerprint
-        await MainActor.run {
-            let link = PhoneLink.shared
-            link.autoAllowFingerprint = fingerprint
-            link.reviewFingerprint = fingerprint
-            Task { await link.refresh() }
-        }
+        let link = await PhoneLink.shared
+        _ = await link.allowFromOutside(fingerprint: fingerprint, pillId: pillId, from: "the Lock Screen")
         #endif
         return .result()
     }

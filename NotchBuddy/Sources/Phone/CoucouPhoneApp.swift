@@ -108,10 +108,8 @@ final class PhoneAppDelegate: NSObject, UIApplicationDelegate, UNUserNotificatio
             _ = await link.decide(.deny, fingerprint: fingerprint, pillId: pillId,
                                   summary: summary ?? "Denied from the notification")
         case NotificationActions.allow:
-            // Opens on the command and asks for Face ID right away; nothing is sent without it.
-            link.autoAllowFingerprint = fingerprint
-            link.reviewFingerprint = fingerprint
-            Task { await link.refresh() }
+            // Answered right there: iOS had the iPhone unlocked by its owner first.
+            _ = await link.allowFromOutside(fingerprint: fingerprint, pillId: pillId, from: "a notification")
         default:
             // Review, or a tap on the notification: open the command, Allow needs Face ID there.
             link.reviewFingerprint = fingerprint

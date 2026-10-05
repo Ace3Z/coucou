@@ -38,7 +38,7 @@ enum PhoneSettings {
 
 /// Notification categories and their actions.
 enum NotificationActions {
-    // Approvals: Allow opens Coucou and asks for Face ID right away.
+    // Approvals: Allow and Deny answer right there (iOS asks to unlock first).
     static let approvalCategory = "COUCOU_APPROVAL"
     static let allow = "COUCOU_ALLOW"
     static let review = "COUCOU_REVIEW"
@@ -56,7 +56,7 @@ enum NotificationActions {
 
     @MainActor static func register() {
         let allow = UNNotificationAction(identifier: allow, title: "Allow",
-                                         options: [.foreground, .authenticationRequired],
+                                         options: [.authenticationRequired],
                                          icon: UNNotificationActionIcon(systemImageName: "faceid"))
         let review = UNNotificationAction(identifier: review, title: "Review",
                                           options: [.foreground, .authenticationRequired])
