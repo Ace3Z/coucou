@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// One session: what the agent is doing, its plan, and what it waits for.
 struct SessionDetailView: View {
@@ -7,6 +8,8 @@ struct SessionDetailView: View {
 
     private var session: SessionItem? { link.sessions.first { $0.id == sessionId } }
     private var turn: TurnSnapshot? { link.turns[sessionId] }
+    private var pastTurns: [TurnSnapshot] { link.archive.past[sessionId] ?? [] }
+    @State private var shareImage: UIImage?
 
     var body: some View {
         ScrollView {
@@ -15,9 +18,11 @@ struct SessionDetailView: View {
                     header(session)
                     if session.needsApproval {
                         ApprovalCard(link: link, session: session)
+                    } else if let payload = session.questionPayload, !session.questionFingerprint.isEmpty {
+                        QuestionCard(link: link, session: session, payload: payload)
                     } else if !session.question.isEmpty {
                         waiting(title: "Question", text: session.question, monospaced: false, color: .cyan,
-                                footnote: "Answer on your Mac for now.")
+                                footnote: "Answer on your Mac: this question can't be answered from the iPhone.")
                     }
                     if let turn {
                         LastTurnView(turn: turn, working: session.isWorking)
@@ -31,6 +36,7 @@ struct SessionDetailView: View {
                                 .textSelection(.enabled)
                         }
                     }
+                    if !pastTurns.isEmpty { earlierTurns }
                 }
                 .padding(16)
             } else if let turn {
@@ -39,6 +45,7 @@ struct SessionDetailView: View {
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                     LastTurnView(turn: turn, working: false)
+                    if !pastTurns.isEmpty { earlierTurns }
                 }
                 .padding(16)
             } else {
@@ -58,6 +65,62 @@ struct SessionDetailView: View {
         .navigationTitle(session?.title ?? "Session")
         .navigationBarTitleDisplayMode(.inline)
         .refreshable { await link.refresh() }
+        .toolbar {
+            // The last turn as a picture, to show what Claude did.
+            if let shareImage {
+                ToolbarItem(placement: .topBarTrailing) {
+                    ShareLink(item: Image(uiImage: shareImage),
+                              preview: SharePreview(turn?.project ?? "Coucou", image: Image(uiImage: shareImage))) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                }
+            }
+        }
+        .task(id: turn?.endedAt) {
+            guard let turn, turn.endedAt != nil else { shareImage = nil; return }
+            shareImage = TurnShareCard.render(turn: turn, color: session?.color ?? "#4A86E8")
+        }
+    }
+
+    /// The turns before the latest one, as this iPhone saw them.
+    private var earlierTurns: some View {
+        card(title: "Earlier turns") {
+            VStack(spacing: 0) {
+                ForEach(Array(pastTurns.enumerated()), id: \.offset) { index, past in
+                    NavigationLink {
+                        ScrollView {
+                            LastTurnView(turn: past, working: false).padding(16)
+                        }
+                        .background(Color.black)
+                        .navigationTitle(past.startedAt.formatted(date: .abbreviated, time: .shortened))
+                        .navigationBarTitleDisplayMode(.inline)
+                    } label: {
+                        HStack(spacing: 10) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(past.headline)
+                                    .font(.callout)
+                                    .lineLimit(2)
+                                    .multilineTextAlignment(.leading)
+                                Text(past.startedAt, format: .dateTime.hour().minute())
+                                    .font(.caption2)
+                                    .foregroundStyle(.tertiary)
+                            }
+                            Spacer(minLength: 6)
+                            if !past.files.isEmpty {
+                                Text("\(past.files.count) file\(past.files.count == 1 ? "" : "s")")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Image(systemName: "chevron.right").font(.caption2).foregroundStyle(.tertiary)
+                        }
+                        .padding(.vertical, 8)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    if index < pastTurns.count - 1 { Divider() }
+                }
+            }
+        }
     }
 
     private func header(_ session: SessionItem) -> some View {

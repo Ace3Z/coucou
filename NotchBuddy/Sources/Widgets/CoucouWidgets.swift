@@ -13,6 +13,7 @@ struct CoucouWidgetBundle: WidgetBundle {
         ListWidget()
         LockScreenWidget()
         MochiLiveActivity()
+        CoucouControl()
     }
 }
 
@@ -317,29 +318,46 @@ struct LockScreenView: View {
     @Environment(\.widgetFamily) private var family
     let sessions: [SharedSession]
 
+    /// Steps done of the lead session while it works, for the ring and the bar.
+    private var progress: Double? {
+        guard let lead = sessions.first, lead.isWorking, lead.stepCount > 0 else { return nil }
+        return Double(min(lead.stepIndex + 1, lead.stepCount)) / Double(lead.stepCount)
+    }
+
     var body: some View {
         switch family {
         case .accessoryCircular:
+            // The Lock Screen keeps only brightness: Mochi drawn like in the
+            // tinted Home Screen, so his face shows.
             ZStack {
                 AccessoryWidgetBackground()
-                MochiStill(state: sessions.leadState).padding(6)
+                if let progress {
+                    Gauge(value: progress) { EmptyView() }
+                        .gaugeStyle(.accessoryCircularCapacity)
+                }
+                WidgetMochi(state: sessions.leadState, showBadge: false).padding(progress == nil ? 7 : 10)
             }
+            .widgetURL(sessions.first.map { SharedSession.url(for: $0.id) })
             .containerBackground(for: .widget) { Color.clear }
         case .accessoryRectangular:
             HStack(spacing: 6) {
-                MochiStill(state: sessions.leadState).frame(width: 30, height: 30)
-                VStack(alignment: .leading, spacing: 0) {
+                WidgetMochi(state: sessions.leadState, showBadge: false).frame(width: 32, height: 32)
+                VStack(alignment: .leading, spacing: 1) {
                     Text(sessions.summary ?? "All quiet")
                         .font(.headline)
                         .lineLimit(1)
                     if let lead = sessions.first {
                         Text("\(lead.title) · \(lead.statusText)")
                             .font(.caption)
-                            .lineLimit(2)
+                            .lineLimit(progress == nil ? 2 : 1)
+                    }
+                    if let progress {
+                        ProgressView(value: progress).tint(.white)
                     }
                 }
                 Spacer(minLength: 0)
             }
+            .widgetURL(sessions.first.map { SharedSession.url(for: $0.id) })
             .containerBackground(for: .widget) { Color.clear }
         default:
             Text(sessions.summary.map { "Coucou · \($0)" } ?? "Coucou · all quiet")
